@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Entity Resolution Demo</title>
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --background: #0f172a;
+            --surface: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+        }
+
+        .panels {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 1.25rem;
+            color: #e2e8f0;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text);
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-top: 1rem;
+        }
+
+        button:hover {
+            background: #4338ca;
+        }
+
+        button:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+        }
+
+        #result {
+            margin-top: 2rem;
+            padding: 2rem;
+            border-radius: 1rem;
+            text-align: center;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .match-score {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        .is-match {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+        }
+
+        .is-match .match-score { color: var(--success); }
+
+        .no-match {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+        }
+
+        .no-match .match-score { color: var(--danger); }
+
+        .loader {
+            display: none;
+            text-align: center;
+            margin-top: 2rem;
+            color: var(--text-muted);
+        }
+        
+        @media (max-width: 768px) {
+            .panels {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Entity Matcher AI</h1>
+    <p class="subtitle">Real-time business matching using the Random Forest ML pipeline.</p>
+
+    <div class="panels">
+        <!-- Source 1 Panel -->
+        <div class="card">
+            <h2>Company 1 (Reference)</h2>
+            <div class="form-group">
+                <label>Business Name</label>
+                <input type="text" id="s1_name" placeholder="e.g. Sharma Traders Pvt. Ltd.">
+            </div>
+            <div class="form-group">
+                <label>Address</label>
+                <input type="text" id="s1_address" placeholder="e.g. 12 MG Road, Bangalore">
+            </div>
+            <div class="form-group">
+                <label>Country</label>
+                <input type="text" id="s1_country" placeholder="e.g. India">
+            </div>
+        </div>
+
+        <!-- Source 2 Panel -->
+        <div class="card">
+            <h2>Company 2 (Target)</h2>
+            <div class="form-group">
+                <label>Business Name</label>
+                <input type="text" id="s2_name" placeholder="e.g. Sharma Tradres Private Limited">
+            </div>
+            <div class="form-group">
+                <label>Address</label>
+                <input type="text" id="s2_address" placeholder="e.g. 12 M.G. Rd">
+            </div>
+            <div class="form-group">
+                <label>Country</label>
+                <input type="text" id="s2_country" placeholder="e.g. India">
+            </div>
+        </div>
+    </div>
+
+    <button id="predictBtn" onclick="runPrediction()">Analyze Match</button>
+    <div class="loader" id="loader">Running ML Model...</div>
+
+    <div id="result">
+        <h3 id="result-text" style="margin: 0; color: var(--text-muted);">Match Probability</h3>
+        <div class="match-score" id="match-score">0%</div>
+        <p id="result-status" style="margin: 0; font-weight: 500; font-size: 1.2rem;"></p>
+    </div>
+</div>
+
+<script>
+    async function runPrediction() {
+        const btn = document.getElementById('predictBtn');
+        const loader = document.getElementById('loader');
+        const resultDiv = document.getElementById('result');
+        
+        btn.disabled = true;
+        loader.style.display = 'block';
+        resultDiv.style.display = 'none';
+        resultDiv.className = '';
+
+        const data = {
+            s1_name: document.getElementById('s1_name').value,
+            s1_address: document.getElementById('s1_address').value,
+            s1_country: document.getElementById('s1_country').value,
+            s2_name: document.getElementById('s2_name').value,
+            s2_address: document.getElementById('s2_address').value,
+            s2_country: document.getElementById('s2_country').value
+        };
+
+        try {
+            const response = await fetch('/api/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            const prob = (result.probability * 100).toFixed(1);
+            document.getElementById('match-score').innerText = prob + '%';
+            
+            if (result.is_match) {
+                resultDiv.classList.add('is-match');
+                document.getElementById('result-status').innerText = 'Match Detected!';
+                document.getElementById('result-status').style.color = 'var(--success)';
+            } else {
+                resultDiv.classList.add('no-match');
+                document.getElementById('result-status').innerText = 'Different Entities';
+                document.getElementById('result-status').style.color = 'var(--danger)';
+            }
+            
+            resultDiv.style.display = 'block';
+        } catch (e) {
+            alert('Error running prediction. Ensure the backend server is running.');
+            console.error(e);
+        } finally {
+            btn.disabled = false;
+            loader.style.display = 'none';
+        }
+    }
+</script>
+</body>
+</html>
